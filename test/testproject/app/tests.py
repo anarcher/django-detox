@@ -1,5 +1,7 @@
 from django.test import TestCase
+from django.conf import settings
 from app.models import *
+import time
 
 class CacheTest(TestCase):
     fixtures = ['test']

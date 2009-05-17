@@ -1,4 +1,4 @@
-from django.db import models
+from django.db import models,connection
 from django.db.models import signals
 from djangodetox.ormcache.cache import cache
 from django.db.models.query import QuerySet
@@ -7,9 +7,10 @@ CACHE_DURATION = 60 * 30
 
 def _cache_key(model, pk, field=None):
     if field:
-        return "%s:%s.%s:%s" % (field, model._meta.app_label, model._meta.module_name, pk)
+        cache_key = "%s:%s.%s:%s" % (field, model._meta.app_label, model._meta.module_name, pk)
     else:
-        return "%s.%s:%s" % (model._meta.app_label, model._meta.module_name, pk)
+        cache_key = "%s.%s:%s" % (model._meta.app_label, model._meta.module_name, pk)
+    return cache_key
 
 def _get_cache_key(self, field=None):
     return self._cache_key(self.pk, field)
@@ -20,8 +21,8 @@ class CachingManager(models.Manager):
         self.use_for_related_fields = use_for_related_fields
         super(CachingManager, self).__init__(*args, **kwargs)
 
-    def get_query_set(self):
-        return CachingQuerySet(self.model)
+    def get_query_set(self,connection=connection):
+        return CachingQuerySet(self.model,connection=connection)
 
     def contribute_to_class(self, model, name):
         signals.post_save.connect(self._post_save, sender=model)

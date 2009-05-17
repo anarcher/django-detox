@@ -1,8 +1,11 @@
 from django.db import models
 from djangodetox.ormcache.models import CachedModel
 from djangodetox.ormcache import managers,fields
+from djangodetox.simpleormcache import *
 
-# Create your models here.
+class BoardData(models.Model):
+    title = models.CharField(max_length=32)
+    objects = SimpleCacheManager()
 
 class Author(CachedModel):
     name = models.CharField(max_length=32)
