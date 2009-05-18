@@ -1,6 +1,7 @@
 from django.db import models,connection
 from django.db.models import signals
 from djangodetox.ormcache.cache import cache
+#from django.core.cache import cache
 from django.db.models.query import QuerySet
 
 CACHE_DURATION = 60 * 30
@@ -15,6 +16,13 @@ def _cache_key(model, pk, field=None):
 def _get_cache_key(self, field=None):
     return self._cache_key(self.pk, field)
 
+def post_save_cache(sender,instance,**kwargs):
+    cache.set(instance.cache_key,instance)
+signals.post_save.connect(post_save_cache)
+
+def pre_delete_uncache(sender,instance,**kwargs):
+    cache.delete(instance.cache_key,None)
+signals.pre_delete.connect(pre_delete_uncache)
 
 class CachingManager(models.Manager):
     def __init__(self, use_for_related_fields=True, *args, **kwargs):
@@ -42,7 +50,7 @@ class CachingManager(models.Manager):
         Five second should be more than enough time to prevent this from happening for
         a web app.
         """
-        cache.set(instance.cache_key, None, 5)
+        cache.set(instance.cache_key, None)
 
     def _post_save(self, instance, **kwargs):
         self._invalidate_cache(instance)
@@ -83,6 +91,12 @@ class CachingQuerySet(QuerySet):
                 if obj is not None:
                     obj.from_cache = True
                     return obj
+        obj = super(CachingQuerySet, self).get(*args, **kwargs)
+        cache.set(obj.cache_key,obj)
+        return obj
 
         # Calls self.iterator to fetch objects, storing object in cache.
-        return super(CachingQuerySet, self).get(*args, **kwargs)
+        # ???
+        #return super(CachingQuerySet, self).get(*args, **kwargs)
+
+

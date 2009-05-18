@@ -39,7 +39,7 @@
     "model": "app.article", 
     "fields": {
       "sites": [], 
-      "name": "Article 1", 
+      "name": "test", 
       "author": 1
     }
   }, 

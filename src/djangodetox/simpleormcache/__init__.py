@@ -8,7 +8,6 @@ SIMPLE_CACHE_SECONDS = 60 * 60
 def key_from_instance(instance):
     opts = instance._meta
     cache_key = "%s.%s:%s" % (opts.app_label,opts.module_name,instance.pk)
-    print cache_key
     return cache_key
 
 def post_save_cache(sender,instance,**kwargs):
@@ -30,9 +29,7 @@ class SimpleCacheQuerySet(QuerySet):
         if pk is not None:
             opts = self.model._meta
             key = '%s.%s:%s' % (opts.app_label, opts.module_name, pk)
-            print key
             obj = cache.get(key)
-            print obj
             if obj is not None:
                 self._result_cache = [obj]
                 return self
